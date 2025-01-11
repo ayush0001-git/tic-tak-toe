@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tic Tac Toe</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            font-family: Arial, sans-serif;
+            background-color: #a2d6a6;
+        }
+        .board {
+            position: relative;
+            display: grid;
+            grid-template-columns: repeat(3, 100px);
+            grid-template-rows: repeat(3, 100px);
+            gap: 5px;
+        }
+        .cell {
+            width: 100px;
+            height: 100px;
+            border-radius: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 60px;
+            background-color: #84baec;
+            border: 1px solid #000;
+            cursor: pointer;
+        }
+        .cell.X {
+            color: blue;
+        }
+        .cell.O {
+            color: red;
+        }
+        .status {
+            margin-bottom: 20px;
+            font-size: 24px;
+        }
+        .winning-line {
+            position: absolute;
+            background-color: green;
+            z-index: 1;
+        }
+        .horizontal {
+            height: 5px;
+            width: 310px;
+        }
+        .vertical {
+            width: 5px;
+            height: 310px;
+        }
+        .diagonal {
+            width: 5px;
+            height: 440px;
+            transform: rotate(316deg);
+            top: 0;
+            left: 0;
+            transform-origin: top left;
+        }
+        .anti-diagonal {
+            width: 5px;
+            height: 440px;
+            transform: rotate(45deg);
+            top: 0;
+            right: 0;
+            transform-origin: top right;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>TIC TAC TOE</h1>
+    <div class="status" id="statusDisplay">It's X's turn</div>
+    <div class="board" id="board">
+        <div class="cell" data-cell-index="0"></div>
+        <div class="cell" data-cell-index="1"></div>
+        <div class="cell" data-cell-index="2"></div>
+        <div class="cell" data-cell-index="3"></div>
+        <div class="cell" data-cell-index="4"></div>
+        <div class="cell" data-cell-index="5"></div>
+        <div class="cell" data-cell-index="6"></div>
+        <div class="cell" data-cell-index="7"></div>
+        <div class="cell" data-cell-index="8"></div>
+    </div>
+    <button class="reset-button" id="resetButton">Reset Game</button>
+
+    <script>
+        const statusDisplay = document.getElementById('statusDisplay');
+        const board = document.getElementById('board');
+        const cells = document.querySelectorAll('.cell');
+        const resetButton = document.getElementById('resetButton');
+
+        let gameActive = true;
+        let currentPlayer = 'X';
+        let gameState = ['', '', '', '', '', '', '', '', ''];
+
+        const winningConditions = [
+            [0, 1, 2],
+            [3, 4, 5],
+            [6, 7, 8],
+            [0, 3, 6],
+            [1, 4, 7],
+            [2, 5, 8],
+            [0, 4, 8],
+            [2, 4, 6]
+        ];
+
+        function handleCellClick(event) {
+            const clickedCell = event.target;
+            const clickedCellIndex = parseInt(clickedCell.getAttribute('data-cell-index'));
+
+            if (gameState[clickedCellIndex] !== '' || !gameActive) {
+                return;
+            }
+
+            gameState[clickedCellIndex] = currentPlayer;
+            clickedCell.textContent = currentPlayer;
+            clickedCell.classList.add(currentPlayer);
+
+            handleResultValidation();
+        }
+
+        function handleResultValidation() {
+            let roundWon = false;
+            for (let i = 0; i < winningConditions.length; i++) {
+                const [a, b, c] = winningConditions[i];
+                if (gameState[a] === '' || gameState[b] === '' || gameState[c] === '') {
+                    continue;
+                }
+                if (gameState[a] === gameState[b] && gameState[a] === gameState[c]) {
+                    roundWon = true;
+                    drawWinningLine(a, b, c);
+                    break;
+                }
+            }
+
+            if (roundWon) {
+                statusDisplay.textContent = `Player ${currentPlayer} wins!`;
+                gameActive = false;
+                return;
+            }
+
+            if (!gameState.includes('')) {
+                statusDisplay.textContent = 'Game ended in a draw!';
+                gameActive = false;
+                return;
+            }
+
+            currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
+            statusDisplay.textContent = `It's ${currentPlayer}'s turn`;
+        }
+
+        function drawWinningLine(a, b, c) {
+            const line = document.createElement('div');
+            line.classList.add('winning-line');
+
+            if (a === 0 && b === 1 && c === 2) {
+                line.classList.add('horizontal');
+                line.style.top = '50px';
+            } else if (a === 3 && b === 4 && c === 5) {
+                line.classList.add('horizontal');
+                line.style.top = '155px';
+            } else if (a === 6 && b === 7 && c === 8) {
+                line.classList.add('horizontal');
+                line.style.top = '260px';
+            } else if (a === 0 && b === 3 && c === 6) {
+                line.classList.add('vertical');
+                line.style.left = '50px';
+            } else if (a === 1 && b === 4 && c === 7) {
+                line.classList.add('vertical');
+                line.style.left = '155px';
+            } else if (a === 2 && b === 5 && c === 8) {
+                line.classList.add('vertical');
+                line.style.left = '260px';
+            } else if (a === 0 && b === 4 && c === 8) {
+                line.classList.add('diagonal');
+            } else if (a === 2 && b === 4 && c === 6) {
+                line.classList.add('anti-diagonal');
+            }
+
+            board.appendChild(line);
+        }
+
+        function resetGame() {
+            gameActive = true;
+            currentPlayer = 'X';
+            gameState = ['', '', '', '', '', '', '', '', ''];
+            statusDisplay.textContent = `It's ${currentPlayer}'s turn`;
+            cells.forEach(cell => {
+                cell.textContent = '';
+                cell.classList.remove('X', 'O');
+            });
+            const lines = document.querySelectorAll('.winning-line');
+            lines.forEach(line => line.remove());
+        }
+
+        cells.forEach(cell => cell.addEventListener('click', handleCellClick));
+        resetButton.addEventListener('click', resetGame);
+    </script>
+</body>
+</html>
